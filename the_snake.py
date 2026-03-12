@@ -1,6 +1,7 @@
 import pygame
 from random import randint
 
+
 # <!-- Яндекс — найдётся всё. Может даже ляпы в коде. -->
 
 # Constants
@@ -16,10 +17,10 @@ RIGHT = (1, 0)
 
 # Colors
 BOARD_BACKGROUND_COLOR = (255, 255, 255)  # White background
-TEXT_COLOR = (0, 0, 0)                    # The color of the letters is black
-APPLE_COLOR = (255, 0, 0)                 # Red means the letter "Я"
-ERROR_COLOR = (255, 0, 0)                 # Red for "incorrect"
-HINT_COLOR = (0, 128, 0)                  # Green for a hint
+TEXT_COLOR = (0, 0, 0)                    # Black text
+APPLE_COLOR = (255, 0, 0)                 # Red "Я"
+ERROR_COLOR = (255, 0, 0)                 # Error message color
+HINT_COLOR = (0, 128, 0)                  # Hint color
 
 # Default speed
 BASE_SPEED = 14
@@ -27,9 +28,9 @@ ADMIN_SPEED = 30
 
 # Apple Sizes
 NORMAL_APPLE_SIZE = GRID_SIZE
-ADMIN_APPLE_SIZE = GRID_SIZE * 4  # 4x = "Admin"
+ADMIN_APPLE_SIZE = GRID_SIZE * 4  # 4x size in admin mode
 
-# Initializing PyGame
+# Initialize PyGame
 pygame.init()
 pygame.mixer.quit()
 pygame.mixer.init(frequency=22050, size=-16, channels=1, buffer=512)
@@ -37,23 +38,24 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 pygame.display.set_caption('Змейка | Яндекс')
 clock = pygame.time.Clock()
 
-# Fonts for rendering (all in Times New)
+# Fonts
 font = pygame.font.SysFont('timesnewroman', 18, bold=True)
 big_font = pygame.font.SysFont('timesnewroman', 36, bold=True)
 
 
-# Generating sounds WITHOUT numpy
 def create_sound(frequency, duration=0.1):
+    """Generate a simple square wave sound without numpy."""
     sample_rate = 22050
     frames = int(sample_rate * duration)
     arr = bytearray()
     for i in range(frames):
         wave = int(32767 * 0.3 * (i * frequency / sample_rate - int(i * frequency / sample_rate)))
-        sample = wave if wave < 32767 else 32767
+        sample = min(wave, 32767)
         arr += sample.to_bytes(2, 'little', signed=True)
     return pygame.mixer.Sound(buffer=arr)
 
-# Creating sounds
+
+# Create sounds
 eat_sound = create_sound(800, 0.1)
 crash_sound = create_sound(200, 0.3)
 error_sound = create_sound(400, 0.15)
@@ -61,25 +63,25 @@ correct_sound = create_sound(600, 0.1)
 
 
 class GameObject:
-    """The base class for all game objects."""
+    """Base class for all game objects."""
     def __init__(self, position=None, body_color=None):
         self.position = position
         self.body_color = body_color
 
     def draw(self):
-        raise NotImplementedError("Subclasses must implement this!")
+        raise NotImplementedError("Subclasses must implement draw()")
 
 
 class Apple(GameObject):
-    """The apple is a red "Я". It can be large in administrator mode."""
+    """Red 'Я' apple. Can be large in admin mode."""
     def __init__(self, snake_positions=None, is_admin=False):
         super().__init__(body_color=APPLE_COLOR)
         self.is_admin = is_admin
         self.size = ADMIN_APPLE_SIZE if is_admin else NORMAL_APPLE_SIZE
-        # Если snake_positions не передан, используем пустой список
         self.randomize_position(snake_positions or [])
 
     def randomize_position(self, snake_positions):
+        """Set a new random position not overlapping with the snake."""
         while True:
             max_x = (SCREEN_WIDTH // GRID_SIZE) - (self.size // GRID_SIZE)
             max_y = (SCREEN_HEIGHT // GRID_SIZE) - (self.size // GRID_SIZE)
@@ -90,6 +92,7 @@ class Apple(GameObject):
                 break
 
     def draw(self):
+        """Render the apple as the letter 'Я'."""
         x, y = self.position
         size = 36 if self.is_admin else 18
         apple_font = pygame.font.SysFont('timesnewroman', size, bold=True)
@@ -99,7 +102,7 @@ class Apple(GameObject):
 
 
 class Snake(GameObject):
-    """Snake: first "индекс", then: _ → "яндес" → _ → "яндекс"..."""
+    """Snake that spells 'индекс', then '_→яндес→_→яндекс...'."""
     def __init__(self):
         center_x = SCREEN_WIDTH // 2
         center_y = SCREEN_HEIGHT // 2
@@ -111,12 +114,12 @@ class Snake(GameObject):
         self.base_word = "ндекс"
         self.full_word = "яндекс"
         self.full_word_colors = [
-            (255, 0, 0),   # "я" — red
-            (0, 0, 0),     # "н"
-            (0, 0, 0),     # "д"
-            (0, 0, 0),     # "е"
-            (0, 0, 0),     # "к"
-            (0, 0, 0)      # "с"
+            (255, 0, 0),  # "я" — red
+            (0, 0, 0),    # "н"
+            (0, 0, 0),    # "д"
+            (0, 0, 0),    # "е"
+            (0, 0, 0),    # "к"
+            (0, 0, 0)     # "с"
         ]
 
     def get_head_position(self):
@@ -173,7 +176,7 @@ class Snake(GameObject):
 
 
 def handle_keys(snake):
-    """Processing keystrokes."""
+    """Process keyboard input."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -190,7 +193,7 @@ def handle_keys(snake):
 
 
 def show_game_over(score):
-    """Shows the game end screen. Supports R/К and Q/Й."""
+    """Display game over screen."""
     screen.fill(BOARD_BACKGROUND_COLOR)
     game_over_text = big_font.render("Игра окончена!", True, (255, 0, 0))
     score_text = font.render(f"Очки: {score}", True, TEXT_COLOR)
@@ -211,8 +214,7 @@ def show_game_over(score):
                 pygame.quit()
                 raise SystemExit
             elif event.type == pygame.KEYDOWN:
-                key_char = event.unicode.lower()  
-
+                key_char = event.unicode.lower()
                 if event.key == pygame.K_r or key_char == 'к':
                     waiting = False
                     return True
@@ -222,15 +224,13 @@ def show_game_over(score):
 
 
 def ask_question(question, correct_answer):
-    """
-    The red letter "Я" moves chaotically on a white background
-    """
+    """Display a question with a flying 'Я' and text input."""
     input_text = ""
     error_count = 0
     font_normal = font
     font_small = pygame.font.SysFont('timesnewroman', 16)
 
-    # The flying letter "Я"
+    # Flying "Я"
     y_font = pygame.font.SysFont('timesnewroman', 36, bold=True)
     y_surface = y_font.render("Я", True, (255, 0, 0))
     y_pos = [randint(50, SCREEN_WIDTH - 50), randint(50, SCREEN_HEIGHT - 50)]
@@ -239,7 +239,6 @@ def ask_question(question, correct_answer):
         y_speed = [randint(-3, 3), randint(-3, 3)]
 
     while True:
-        # rearranging "Я"
         y_pos[0] += y_speed[0]
         y_pos[1] += y_speed[1]
 
@@ -249,7 +248,6 @@ def ask_question(question, correct_answer):
             y_speed[1] *= -1
 
         screen.fill(BOARD_BACKGROUND_COLOR)
-
         screen.blit(y_surface, (y_pos[0], y_pos[1]))
 
         question_surf = font_normal.render(question, True, TEXT_COLOR)
@@ -287,17 +285,15 @@ def ask_question(question, correct_answer):
                         input_text = ""
                 elif event.key == pygame.K_BACKSPACE:
                     input_text = input_text[:-1]
-                else:
-                    char = event.unicode
-                    if char.isprintable() and len(input_text) < 20:
-                        input_text += char
+                elif event.unicode.isprintable() and len(input_text) < 20:
+                    input_text += event.unicode
 
         clock.tick(60)
 
 
 def show_intro():
-    """Asks the first question. If 'Admin', skip the second."""
-    success, answer = ask_question("Сколько лет Яндексу в 2026 году?", "28")
+    """Ask first question. Skip second if 'admin'."""
+    _, answer = ask_question("Сколько лет Яндексу в 2026 году?", "28")
     if answer.lower() == "admin":
         return "admin"
     ask_question("Чему равно число π? (4 знака после запятой)", "3,1416")
@@ -305,9 +301,9 @@ def show_intro():
 
 
 def main():
-    """The main game cycle."""
+    """Main game loop."""
     mode = show_intro()
-    is_admin = (mode == "admin")
+    is_admin = mode == "admin"
     speed = ADMIN_SPEED if is_admin else BASE_SPEED
 
     snake = Snake()
@@ -320,27 +316,22 @@ def main():
     while running:
         clock.tick(speed)
         handle_keys(snake)
-        snake.update_direction() 
+        snake.update_direction()
         snake.move()
 
-        # Collision check only in normal mode
-        if not is_admin:
-            if snake.check_collision():
-                crash_sound.play()
-                screen.fill((255, 0, 0))
-                pygame.display.update()
-                pygame.time.delay(200)
+        # Collision only in normal mode
+        if not is_admin and snake.check_collision():
+            crash_sound.play()
+            screen.fill((255, 0, 0))
+            pygame.display.update()
+            pygame.time.delay(200)
+            if show_game_over(score):
+                snake.reset()
+                apple = Apple(snake.positions, is_admin=is_admin)
+                score = 0
+                last_effect_triggered.clear()
 
-                if show_game_over(score):
-                    snake.reset()
-                    apple = Apple(snake.positions, is_admin)
-                    score = 0
-                    last_effect_triggered = set()
-        else:
-            # In administrator mode, you can pass through yourself
-            pass
-
-        # The Apple Eating Test
+        # Check for apple collision
         head_pos = snake.get_head_position()
         apple_rect = pygame.Rect(apple.position, (apple.size, apple.size))
         if apple_rect.collidepoint(head_pos):
@@ -354,10 +345,9 @@ def main():
                 screen.fill(BOARD_BACKGROUND_COLOR)
                 apple.draw()
                 for pos in snake.positions:
-                    x, y = pos
-                    red_rect = pygame.Rect(x, y, GRID_SIZE, GRID_SIZE)
-                    pygame.draw.rect(screen, (255, 0, 0), red_rect)
-                    pygame.draw.rect(screen, (0, 0, 0), red_rect, 1)
+                    rect = pygame.Rect(pos[0], pos[1], GRID_SIZE, GRID_SIZE)
+                    pygame.draw.rect(screen, (255, 0, 0), rect)
+                    pygame.draw.rect(screen, (0, 0, 0), rect, 1)
                 pygame.display.update()
                 pygame.time.delay(200)
 
