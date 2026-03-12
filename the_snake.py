@@ -102,7 +102,7 @@ class Apple(GameObject):
         apple_font = pygame.font.SysFont('timesnewroman', size, bold=True)
         text_surface = apple_font.render("Я", True, APPLE_COLOR)
         text_rect = text_surface.get_rect(
-            center=(x + self.size // 2, y + self.size // 2)
+            center=(x + self.size // 2, y + self.size // 2),
         )
         screen.blit(text_surface, text_rect)
 
@@ -126,7 +126,7 @@ class Snake(GameObject):
             (0, 0, 0),    # "д"
             (0, 0, 0),    # "е"
             (0, 0, 0),    # "к"
-            (0, 0, 0)     # "с"
+            (0, 0, 0),     # "с"
         ]
 
     def get_head_position(self):
@@ -145,7 +145,7 @@ class Snake(GameObject):
         dx, dy = self.direction
         new_head = (
             (head_x + dx * GRID_SIZE) % SCREEN_WIDTH,
-            (head_y + dy * GRID_SIZE) % SCREEN_HEIGHT
+            (head_y + dy * GRID_SIZE) % SCREEN_HEIGHT,
         )
         self.positions.insert(0, new_head)
         if len(self.positions) > self.length:
@@ -186,7 +186,7 @@ class Snake(GameObject):
                 color = self.full_word_colors[word_idx]
             text_surface = font.render(letter, True, color)
             text_rect = text_surface.get_rect(
-                center=(x + GRID_SIZE // 2, y + GRID_SIZE // 2)
+                center=(x + GRID_SIZE // 2, y + GRID_SIZE // 2),
             )
             screen.blit(text_surface, text_rect)
 
@@ -216,24 +216,24 @@ def show_game_over(score):
     restart_text = font.render("R — Рестарт | Q — Выход", True, TEXT_COLOR)
     hint_text = font.render(
         "Подсказка: введите 'Admin' в ответ на первый вопрос",
-        True, (0, 0, 255)
+        True, (0, 0, 255),
     )
 
     screen.blit(game_over_text, (
         SCREEN_WIDTH // 2 - game_over_text.get_width() // 2,
-        SCREEN_HEIGHT // 2 - 60
+        SCREEN_HEIGHT // 2 - 60,
     ))
     screen.blit(score_text, (
         SCREEN_WIDTH // 2 - score_text.get_width() // 2,
-        SCREEN_HEIGHT // 2
+        SCREEN_HEIGHT // 2,
     ))
     screen.blit(restart_text, (
         SCREEN_WIDTH // 2 - restart_text.get_width() // 2,
-        SCREEN_HEIGHT // 2 + 40
+        SCREEN_HEIGHT // 2 + 40,
     ))
     screen.blit(hint_text, (
         SCREEN_WIDTH // 2 - hint_text.get_width() // 2,
-        SCREEN_HEIGHT - 50
+        SCREEN_HEIGHT - 50,
     ))
 
     pygame.display.update()
@@ -284,32 +284,32 @@ def ask_question(question, correct_answer):
         question_surf = font_normal.render(question, True, TEXT_COLOR)
         screen.blit(question_surf, (
             SCREEN_WIDTH // 2 - question_surf.get_width() // 2,
-            SCREEN_HEIGHT // 2 - 60
+            SCREEN_HEIGHT // 2 - 60,
         ))
 
         input_surf = font_normal.render(f"> {input_text}_", True, TEXT_COLOR)
         screen.blit(input_surf, (
             SCREEN_WIDTH // 2 - input_surf.get_width() // 2,
-            SCREEN_HEIGHT // 2 - 10
+            SCREEN_HEIGHT // 2 - 10,
         ))
 
         if error_count > 0:
             error_surf = font_small.render(
-                "Ответ неверный", True, ERROR_COLOR
+                "Ответ неверный", True, ERROR_COLOR,
             )
             screen.blit(error_surf, (
                 SCREEN_WIDTH // 2 - error_surf.get_width() // 2,
-                SCREEN_HEIGHT // 2 + 30
+                SCREEN_HEIGHT // 2 + 30,
             ))
 
         if error_count >= 3:
             hint_surf = font_small.render(
                 f"Правильный ответ: {correct_answer}",
-                True, HINT_COLOR
+                True, HINT_COLOR,
             )
             screen.blit(hint_surf, (
                 SCREEN_WIDTH // 2 - hint_surf.get_width() // 2,
-                SCREEN_HEIGHT // 2 + 60
+                SCREEN_HEIGHT // 2 + 60,
             ))
 
         pygame.display.update()
@@ -408,3 +408,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
